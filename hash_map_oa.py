@@ -1,8 +1,8 @@
-# Name:
-# OSU Email:
+# Name: Nolan Reichkitzer
+# OSU Email: reichkin@oregonstate.edu
 # Course: CS261 - Data Structures
-# Assignment:
-# Due Date:
+# Assignment: 6
+# Due Date: 3/14/2024
 # Description:
 
 from a6_include import (DynamicArray, DynamicArrayException, HashEntry,

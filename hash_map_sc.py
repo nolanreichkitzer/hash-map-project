@@ -1,10 +1,9 @@
-# Name:
-# OSU Email:
+# Name: Nolan Reichkitzer
+# OSU Email: reichkin@oregonstate.edu
 # Course: CS261 - Data Structures
-# Assignment:
-# Due Date:
+# Assignment: 6
+# Due Date: 3/14/2024
 # Description:
-
 
 from a6_include import (DynamicArray, LinkedList,
                         hash_function_1, hash_function_2)
@@ -90,66 +89,190 @@ class HashMap:
 
     def put(self, key: str, value: object) -> None:
         """
-        TODO: Write this implementation
+        Updates the key/value pair in the hash map. If the given key already exists, its associated value is replaced
+        with the new value. If the given key is not in the hash map, a new key/value pair is added.
+
+        Args:
+            key: string - the key associated to input value
+            value: object - the value associated to the input key
+
+        Returns:
+            None - key/value pair will be updated or added to the hash map
         """
-        pass
+        # Check the load factor and resize the table if greater than or equal to 1
+        if self.table_load() >= 1:
+            self.resize_table(self._capacity * 2)
+
+        # Determine the index for the given key
+        hash_value = self._hash_function(key)
+        index = hash_value % self._capacity
+
+        # At the bucket pointed to by index, use the Linked List remove method to remove a node with the input key if
+        # it already exists in the bucket. Then, use the Linked List insert method to add the new key-value pair.
+        if self._buckets[index].remove(key):
+            self._size -= 1
+        self._buckets[index].insert(key, value)
+        self._size += 1
 
     def resize_table(self, new_capacity: int) -> None:
         """
-        TODO: Write this implementation
+        Changes the capacity of the underlying dynamic array. All existing key/value pairs are rehashed and put into
+        the array. The new capacity should be a prime number. If it is not prime, the capacity will be changed to the
+        next prime number.
+
+        Args:
+            new_capacity: int - the proposed capacity for the underlying dynamic array.
+                                This will change if the proposed capacity is not prime.
+
+        Returns:
+            None - underlying dynamic array will have a new capacity and existing key/value pairs will be rehashed.
         """
-        pass
+        # new_capacity must be greater than 1
+        if new_capacity < 1:
+            return
+
+        # new_capacity must be prime. If it is not prime, change it to the next prime number
+        if not self._is_prime(new_capacity):
+            new_capacity = self._next_prime(new_capacity)
+
+        # Store the keys and values of each element in the table. Update self._capacity and clear the hash table
+        da = self.get_keys_and_values()
+        self._capacity = new_capacity
+        self.clear()
+
+        # Loop through the keys & values and add them to the new hash table
+        for index in range(da.length()):
+            self.put(da[index][0], da[index][1])
 
     def table_load(self) -> float:
         """
-        TODO: Write this implementation
+        Returns the current hash table load factor
         """
-        pass
+        return self._size / self._capacity
 
     def empty_buckets(self) -> int:
         """
-        TODO: Write this implementation
+        Returns the number of empty buckets in the hash table
         """
-        pass
+        counter = 0
+
+        # Loop through each bucket in the hash table and update counter if bucket is empty
+        for index in range(self._capacity):
+            if self._buckets[index].length() == 0:
+                counter += 1
+
+        return counter
 
     def get(self, key: str):
         """
-        TODO: Write this implementation
+        Returns the value associated with the given key if the key exists in the hash map.
+
+        Args:
+            key: str - the key associated with the value to be returned
+
+        Returns:
+            value: object - the value associated to the given key
+            Returns None if the key does not exist in the hash map
         """
-        pass
+        # Determine the index for the given key
+        hash_value = self._hash_function(key)
+        index = hash_value % self._capacity
+
+        # At the bucket pointed to by index, use the LinkedList contains method to return the node with the input key
+        node = self._buckets[index].contains(key)
+
+        # If the node is not None, return the node's value
+        if node:
+            return node.value
 
     def contains_key(self, key: str) -> bool:
         """
-        TODO: Write this implementation
+        Returns True if the given key is in the hash map, otherwise it returns False.
+
+        Args:
+            key: str - the key to be searched for in the hash map
+
+        Returns:
+            True - if the given key is found in the hash map
+            False - if the given key is not found in the hash map
         """
-        pass
+        # Determine the index for the given key
+        hash_value = self._hash_function(key)
+        index = hash_value % self._capacity
+
+        # At the bucket pointed to by index, use the LinkedList contains method to determine if the key exists
+        if self._buckets[index].contains(key):
+            return True
+
+        # Return False if the key is not found
+        return False
 
     def remove(self, key: str) -> None:
         """
-        TODO: Write this implementation
+        Removes the given key and its associated value from the hash map.
+        If the key is not in the hash map, the method does nothing.
+
+        Args:
+            key: str - the key to be searched for and removed from the hash map
+
+        Returns:
+            None - the key/value pair will be removed if found.
         """
-        pass
+        # Determine the index for the given key
+        hash_value = self._hash_function(key)
+        index = hash_value % self._capacity
+
+        # At the bucket pointed to by index, use the LinkedList remove method to remove the key if it exists
+        self._buckets[index].remove(key)
+        self._size -= 1
 
     def get_keys_and_values(self) -> DynamicArray:
         """
-        TODO: Write this implementation
+        Returns a dynamic array where each index contains a tuple of a key/value pair stored in the hash map.
+
+        Returns:
+            da - dynamic array containing tuples of the key/value pairs stored in the hash map
         """
-        pass
+        # Initialize a new Dynamic Array
+        da = DynamicArray()
+
+        # Loop through each bucket in the table, and append a tuple with the key/value of each node to the dynamic array
+        for index in range(self._capacity):
+            for node in self._buckets[index]:
+                if node:
+                    da.append((node.key, node.value))
+
+        return da
 
     def clear(self) -> None:
         """
-        TODO: Write this implementation
+        Clears the contents of the hash map. It does not change the underlying hash table capacity.
         """
-        pass
+        # To clear the contents of the hash map, set self._buckets to a new Dynamic Array, repopulate with empty
+        # Linked Lists, and update self._size
+        self._buckets = DynamicArray()
+        for _ in range(self._capacity):
+            self._buckets.append(LinkedList())
+        self._size = 0
 
 
 def find_mode(da: DynamicArray) -> tuple[DynamicArray, int]:
     """
-    TODO: Write this implementation
+    Given a dynamic array, this function returns a tuple containing a dynamic array comprising the mode value(s) of the
+    given array, and an integer representing the highest frequency of occurrence for the mode value(s).
+
+    Args:
+        da: dynamic array with at least one element and whose elements are strings
+
+    Returns:
+        mode: tuple - first element of the tuple is a dynamic array containing the mode value(s) of the given array
+                      second element of the tuple is the frequency of the mode value(s)
+
     """
     # if you'd like to use a hash map,
     # use this instance of your Separate Chaining HashMap
     map = HashMap()
+
 
 
 # ------------------- BASIC TESTING ---------------------------------------- #

@@ -223,8 +223,8 @@ class HashMap:
         index = hash_value % self._capacity
 
         # At the bucket pointed to by index, use the LinkedList remove method to remove the key if it exists
-        self._buckets[index].remove(key)
-        self._size -= 1
+        if self._buckets[index].remove(key):
+            self._size -= 1
 
     def get_keys_and_values(self) -> DynamicArray:
         """
@@ -251,8 +251,10 @@ class HashMap:
         # To clear the contents of the hash map, set self._buckets to a new Dynamic Array, repopulate with empty
         # Linked Lists, and update self._size
         self._buckets = DynamicArray()
+
         for _ in range(self._capacity):
             self._buckets.append(LinkedList())
+
         self._size = 0
 
 

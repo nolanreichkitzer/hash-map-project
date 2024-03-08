@@ -3,7 +3,23 @@
 # Course: CS261 - Data Structures
 # Assignment: 6
 # Due Date: 3/14/2024
-# Description:
+# Description: This module implements a Hash Map using open addressing with quadratic probing for collision resolution.
+#
+#              It includes the following public methods:
+#
+#              get_size() - Returns the number of elements in the hash map
+#              get_capacity() - Returns the capacity of the hash map
+#              put(key, value) - Updates the key/value pair in the hash map
+#              resize_table(new_capacity) - Changes the capacity of the underlying dynamic array and rehashes existing
+#                                           key/value pairs
+#              table_load() - Returns the load factor of the hash map
+#              empty_buckets() - Returns the number of empty buckets in the hash map
+#              get(key) - Returns the value associated with the given key if the key exists in the hash map
+#              contains_key(key) - Returns True if the given key exists in the hash map. False, if not.
+#              remove(key) - Removes the value associated with the given key from the hash map
+#              get_keys_and_values() - Returns a dynamic array where each index contains a tuple of each key/value pair
+#                                      stored in the hash map.
+#              clear() - Clears the contents of the hash map. It does not change the underlying hash table capacity
 
 from a6_include import (DynamicArray, DynamicArrayException, HashEntry,
                         hash_function_1, hash_function_2)
@@ -104,25 +120,26 @@ class HashMap:
         # Initialize new HashEntry, and determine the index for the given key
         hash_entry = HashEntry(key, value)
         hash_value = self._hash_function(key)
-        index = hash_value % self._capacity
+        index_initial = hash_value % self._capacity
+        index = index_initial
         probe = 1
 
         # If an object exists at index, check its key and tombstone property. Move to next index if needed
         while self._buckets[index]:
 
-            # If the key at index matches the input key, replace it with the new hash entry
+            # If matching key is found and object is not a tombstone, replace it with the new hash entry.
             if self._buckets[index].key == key and not self._buckets[index].is_tombstone:
                 self._buckets[index] = hash_entry
                 return
 
-            # If the object at index is a tombstone, replace it with the new hash entry and update size
-            if self._buckets[index].is_tombstone:
+            # If matching key is found and object is a tombstone, replace it with the new hash entry and update size
+            if self._buckets[index].key == key and self._buckets[index].is_tombstone:
                 self._buckets[index] = hash_entry
                 self._size += 1
                 return
 
             # Determine next index using quadratic probing scheme
-            index = (index + probe ** 2) % self._capacity
+            index = (index_initial + probe ** 2) % self._capacity
             probe += 1
 
         # When we reach an open index, add in the new hash entry and update size
@@ -184,7 +201,8 @@ class HashMap:
         """
         # Determine the index for the given key
         hash_value = self._hash_function(key)
-        index = hash_value % self._capacity
+        index_initial = hash_value % self._capacity
+        index = index_initial
         probe = 1
 
         # If an object exists at index, compare its key to the input key
@@ -195,7 +213,7 @@ class HashMap:
                 return self._buckets[index].value
 
             # Determine next index using quadratic probing scheme
-            index = (index + probe ** 2) % self._capacity
+            index = (index_initial + probe ** 2) % self._capacity
             probe += 1
 
     def contains_key(self, key: str) -> bool:
@@ -211,7 +229,8 @@ class HashMap:
         """
         # Determine the index for the given key
         hash_value = self._hash_function(key)
-        index = hash_value % self._capacity
+        index_initial = hash_value % self._capacity
+        index = index_initial
         probe = 1
 
         # If an object exists at index, compare its key to the input key
@@ -222,7 +241,7 @@ class HashMap:
                 return True
 
             # Determine next index using quadratic probing scheme
-            index = (index + probe ** 2) % self._capacity
+            index = (index_initial + probe ** 2) % self._capacity
             probe += 1
 
         # If key was not found, return False
@@ -241,7 +260,8 @@ class HashMap:
         """
         # Determine the index for the given key
         hash_value = self._hash_function(key)
-        index = hash_value % self._capacity
+        index_initial = hash_value % self._capacity
+        index = index_initial
         probe = 1
 
         # If an object exists at index, compare its key to the input key
@@ -254,12 +274,12 @@ class HashMap:
                 return
 
             # Determine next index using quadratic probing scheme
-            index = (index + probe ** 2) % self._capacity
+            index = (index_initial + probe ** 2) % self._capacity
             probe += 1
 
     def get_keys_and_values(self) -> DynamicArray:
         """
-        Returns a dynamic array where each index contains a tuple of a key/value pair stored in the hash map.
+        Returns a dynamic array where each index contains a tuple of each key/value pair stored in the hash map.
 
         Returns:
             da - dynamic array containing tuples of the key/value pairs stored in the hash map
@@ -270,9 +290,8 @@ class HashMap:
         # Loop through the elements in the hash map
         for element in self:
 
-            # Store each elements key and value as a tuple in the dynamic array, skipping None objects and tombstones
-            if element and not element.is_tombstone:
-                da.append((element.key, element.value))
+            # Store each elements key and value as a tuple in the dynamic array
+            da.append((element.key, element.value))
 
         return da
 
@@ -294,6 +313,7 @@ class HashMap:
         Create iterator for loop
         """
         self._index = 0
+
         return self
 
     def __next__(self):
@@ -301,11 +321,18 @@ class HashMap:
         Obtain next value and advance iterator
         """
         try:
+            # Move iterator to the next non-tombstone entry in the table
+            while self._buckets[self._index] is None or self._buckets[self._index].is_tombstone:
+                self._index += 1
+
             value = self._buckets[self._index]
+
+            # Increment iterator
+            self._index += 1
+
         except DynamicArrayException:
             raise StopIteration
 
-        self._index += 1
         return value
 
 

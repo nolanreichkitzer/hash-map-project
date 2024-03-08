@@ -3,7 +3,30 @@
 # Course: CS261 - Data Structures
 # Assignment: 6
 # Due Date: 3/14/2024
-# Description:
+# Description: This module implements a Hash Map using chaining for collision resolution.
+#
+#              It includes the following public methods:
+#
+#              get_size() - Returns the number of elements in the hash map
+#              get_capacity() - Returns the capacity of the hash map
+#              put(key, value) - Updates the key/value pair in the hash map
+#              resize_table(new_capacity) - Changes the capacity of the underlying dynamic array and rehashes existing
+#                                           key/value pairs
+#              table_load() - Returns the load factor of the hash map
+#              empty_buckets() - Returns the number of empty buckets in the hash map
+#              get(key) - Returns the value associated with the given key if the key exists in the hash map
+#              contains_key(key) - Returns True if the given key exists in the hash map. False, if not.
+#              remove(key) - Removes the value associated with the given key from the hash map
+#              get_keys_and_values() - Returns a dynamic array where each index contains a tuple of each key/value pair
+#                                      stored in the hash map.
+#              clear() - Clears the contents of the hash map. It does not change the underlying hash table capacity
+#
+#
+#              This module includes the following public function:
+#
+#              find_mode(da) - Returns a tuple containing a dynamic array comprising the mode value(s) of the given
+#                              array, and an integer representing the highest frequency of occurrence for the mode
+#                              value(s).
 
 from a6_include import (DynamicArray, LinkedList,
                         hash_function_1, hash_function_2)
@@ -228,7 +251,7 @@ class HashMap:
 
     def get_keys_and_values(self) -> DynamicArray:
         """
-        Returns a dynamic array where each index contains a tuple of a key/value pair stored in the hash map.
+        Returns a dynamic array where each index contains a tuple of each key/value pair stored in the hash map.
 
         Returns:
             da - dynamic array containing tuples of the key/value pairs stored in the hash map
@@ -269,12 +292,45 @@ def find_mode(da: DynamicArray) -> tuple[DynamicArray, int]:
     Returns:
         mode: tuple - first element of the tuple is a dynamic array containing the mode value(s) of the given array
                       second element of the tuple is the frequency of the mode value(s)
-
     """
-    # if you'd like to use a hash map,
-    # use this instance of your Separate Chaining HashMap
+    # Initialize a HashMap
     map = HashMap()
 
+    # Put each element of the given dynamic array into the map with the element as the key.
+    # The value of each element will be the frequency of each key.
+    for index in range(da.length()):
+
+        # If the key does not already exist in the map, use value = 1
+        if not map.contains_key(da[index]):
+            map.put(da[index], 1)
+
+        # If the key exists in the map, add 1 to the existing value in the map
+        else:
+            map.put(da[index], map.get(da[index]) + 1)
+
+    # Use the get_keys_and_values method to return a dynamic array containing the keys/values in the map
+    keys_values = map.get_keys_and_values()
+
+    # Initialize a dynamic array to store the mode(s) and set initial frequency to 0
+    mode_array = DynamicArray()
+    frequency = 0
+
+    # Loop through the keys_values array, checking the frequency of each key (given by the value associated to the key)
+    for index in range(keys_values.length()):
+
+        # If frequency of a key is greater than the frequency counter, create a new dynamic array and append
+        # the new mode. Then, update frequency.
+        if keys_values[index][1] > frequency:
+            mode_array = DynamicArray()
+            mode_array.append(keys_values[index][0])
+            frequency = keys_values[index][1]
+
+        # If frequency of key is equal to the frequency counter, append the key to the mode_array
+        elif keys_values[index][1] == frequency:
+            mode_array.append(keys_values[index][0])
+
+    # Return mode_array and frequency as a tuple
+    return mode_array, frequency
 
 
 # ------------------- BASIC TESTING ---------------------------------------- #
